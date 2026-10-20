@@ -1,0 +1,49 @@
+services:
+  app:
+    build: .
+    profiles:
+      - app
+    depends_on:
+      - qdrant
+      - ollama
+    environment:
+      SPRING_DOCKER_COMPOSE_ENABLED: 'false'
+      SPRING_AI_OLLAMA_BASE_URL: 'http://ollama:11434'
+      SPRING_AI_VECTORSTORE_QDRANT_HOST: 'qdrant'
+      SPRING_AI_VECTORSTORE_QDRANT_PORT: '6334'
+    volumes:
+      # Mount local documents here to ingest them, e.g.
+      # rag.document.url=file:///documents/mydoc.pdf
+      - './documents:/documents:ro'
+    networks:
+      - ragnet
+    stdin_open: true
+    tty: true
+
+  qdrant:
+    image: 'qdrant/qdrant:latest'
+    ports:
+      - '6334:6334'
+    networks:
+      - ragnet
+
+  ollama:
+    image: 'ollama/ollama:latest'
+    ports:
+      - '11434:11434'
+    volumes:
+      - 'ollama-data:/root/.ollama'
+    networks:
+      - ragnet
+
+volumes:
+  ollama-data:
+
+networks:
+  ragnet:
+    driver: bridge
+    driver_opts:
+      # Host routes over a VPN (surfshark_wg, mtu 1280). The default bridge
+      # mtu of 1500 causes TLS handshakes to hang mid-pull over that path, so
+      # match this network's mtu to the tunnel's.
+      com.docker.network.driver.mtu: '1280'

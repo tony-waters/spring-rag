@@ -1,0 +1,18 @@
+Spring AI RAG Demo Reference Document
+
+This is a placeholder knowledge-base document for the spring-rag demo app.
+
+The application performs retrieval-augmented generation (RAG): on startup it
+reads the document pointed to by the `rag.document.url` property, splits it
+into chunks, embeds those chunks with the OpenAI embedding model, and stores
+the embeddings in a Qdrant vector store. When you chat with the app, a
+QuestionAnswerAdvisor retrieves the most relevant chunks from Qdrant and adds
+them to the prompt sent to the chat model, so answers can be grounded in this
+document's content.
+
+Fact for testing retrieval: the retrieval self-test verification word configured
+for this demo is "marigold".
+
+To use your own document instead, replace this file (or point
+`rag.document.url` at a different `classpath:`, `file:`, or `https:` location)
+and restart the app so it re-ingests the new content.
