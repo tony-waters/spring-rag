@@ -15,15 +15,20 @@ ingestion whenever Qdrant already holds data, so an edited `refunds.md` is ignor
 volume is gone. Skip either step and the probes below will pass against the previous version.
 
 ```bash
-docker compose down -v                  # drops the Qdrant volume, so ingestion re-runs
-docker compose build app                # picks up SYSTEM_PROMPT and property changes
+docker compose build app                # SYSTEM_PROMPT is baked into the image
+docker compose rm -sf qdrant            # clears ingested chunks, so ingestion re-runs
 docker compose up -d qdrant ollama
 docker compose run --rm app
 ```
 
-`down -v` is only needed when the ingested document changed; `build app` is needed for any
-source or property change. Running both every time costs one re-ingestion and removes the
-question.
+`rm -sf qdrant` is only needed when the ingested document changed; `build app` is needed for
+any source or property change.
+
+**Do not use `docker compose down -v` for this.** Qdrant has no named volume (see
+`compose.yaml`) — its data lives in the container layer, so recreating the container is what
+clears it. What `-v` *does* remove is `ollama-data`, the model cache, forcing a fresh ~2GB
+pull of `llama3.2:3b`. That is the pull the timeout settings in `application.properties` exist
+to survive; there is no reason to trigger it to re-ingest a Markdown file.
 
 Confirm from the startup log that ingestion actually ran — `Loading document from ...`
 followed by `Document loading complete.` If you see `Vector store already has data; skipping
