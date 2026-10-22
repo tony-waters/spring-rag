@@ -48,7 +48,14 @@ How can I help?
 >
 ```
 
-Type a question and press Enter. Use Ctrl+D to exit the app container (`qdrant`
+Type a question and press Enter.
+
+**Expect to wait.** Ollama runs `llama3.1:8b` on the CPU here, with no GPU offload,
+so a single answer takes a few minutes on a typical laptop — long enough to look
+like a hang when it is not. If you would rather have fast answers than accurate
+ones, set `spring.ai.ollama.chat.model=llama3.2:3b`: it responds in seconds, at the
+cost of inventing refund verdicts when it has no facts to base them on (see
+`docs/probe-questions.md`). Use Ctrl+D to exit the app container (`qdrant`
 and `ollama` keep running — stop them with `docker compose down` when you're done).
 
 If you change the source code, rebuild the image with:

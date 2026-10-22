@@ -53,11 +53,25 @@ traded safety for tone and needs narrowing.
 Probe 4 is the only probe where a verdict is correct, and it checks that the watch-list review
 requirement survives the instruction to be brief.
 
-All five passed on `llama3.1:8b` as of the prompt in this commit. They have never all passed
-on `llama3.2:3b`: probe 1 failed there under two different prompts, inventing a verdict and
+All five passed on `llama3.1:8b` across two runs. They have never all passed on
+`llama3.2:3b`: probe 1 failed there under two different prompts, inventing a verdict and
 contradicting itself inside one sentence, which is what justified the larger model. If you
 switch back to a 3B-class model, expect probe 1 to fail again and do not read it as a prompt
 regression.
+
+Budget time: on CPU the 8B takes a few minutes per answer, so a full run is 15-20 minutes.
+
+The two 8B runs differed enough to be worth knowing about, since a single run will mislead
+you. In the second, three consecutive answers asked "whether the order was delivered and
+when" in near-identical words — the "lead with the question" branch became the only thing the
+model said. The first run varied its phrasing. So monotony is a live risk that the pass
+criteria above do not catch, and "register is better on the 8B" rests on fewer samples than
+the correctness result does.
+
+Probe 5 also passed more weakly the second time: it asked about the order already under
+discussion rather than the previous one, and asked for a delivery date it had been given. It
+did not invent an order number, which is all the stated criterion checks — the criterion is
+looser than it should be.
 
 ## Not covered by these probes
 
