@@ -29,7 +29,7 @@ public class SpringRagApplication {
                     if (!scanner.hasNextLine()) break; // to avoid infinite loops in tests
                     var input = scanner.nextLine();
                     if (input.isBlank()) continue; // allows user to hit return without error
-                    System.out.println("\n - " +
+                    System.out.println("\n" +
                             chatClient.prompt(input)
                                     .advisors(spec -> spec.param(ChatMemory.CONVERSATION_ID, "DEMO"))
                                     .call()

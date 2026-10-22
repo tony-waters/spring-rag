@@ -6,6 +6,17 @@ base for support agents and AI assistants answering refund questions.
 **Scope note:** this policy determines whether an order *qualifies* for a refund. It does not
 cover how a refund payment is actually issued once approved.
 
+## Contents
+
+- [Summary](#summary)
+- [Eligibility rules, in order](#eligibility-rules-in-order)
+- [Customer standing](#customer-standing)
+- [Order status and timing](#order-status-and-timing)
+- [Refund amount and currency](#refund-amount-and-currency)
+- [What this policy does not cover](#what-this-policy-does-not-cover)
+- [Example scenarios](#example-scenarios)
+- [Data model reference](#data-model-reference)
+
 ## Summary
 
 An order is eligible for a refund only if **all** of the following are true:
@@ -30,21 +41,21 @@ total, in the order's original currency.
 
 ## Eligibility rules, in order
 
-| # | Rule | Condition to pass | Reason reported if it fails |
-|---|------|--------------------|------------------------------|
-| 1 | Identification required | Both a customer and an order are specified | "Customer and order are required." |
-| 2 | Customer must exist | The customer can be found | "Customer was not found." |
-| 3 | Order must exist | The order can be found | "Order was not found." |
-| 4 | Order must belong to customer | The order was placed by the customer in question | "Order does not belong to the selected customer." |
-| 5 | Customer must be active | The customer's account status is active | "Customer is not active." |
-| 6 | Customer must not be blocked | The customer's risk level is not "blocked" | "Customer risk level blocks this refund." |
-| 7 | No existing refund | The order has not already been refunded | "Order has already been refunded." |
-| 8 | Order must be delivered | The order's status is "delivered" | "Order must be delivered before a refund can be considered." |
-| 9 | Delivery date must be known | A delivery date is recorded for the order | "Order has no recorded delivery date." |
-| 10 | Within refund window | Delivery date falls within the refund window | "Order was delivered outside the refund window." |
+| # | Rule | Condition to pass | Why it fails |
+|---|------|--------------------|---------------|
+| 1 | Identification required | Both a customer and an order are specified | neither the customer nor the order has been identified |
+| 2 | Customer must exist | The customer can be found | no customer matches the details given |
+| 3 | Order must exist | The order can be found | no order matches the details given |
+| 4 | Order must belong to customer | The order was placed by the customer in question | the order was placed by someone else |
+| 5 | Customer must be active | The customer's account status is active | the account is suspended, closed or otherwise inactive |
+| 6 | Customer must not be blocked | The customer's risk level is not `blocked` | the customer's risk level rules out a refund entirely |
+| 7 | No existing refund | The order has not already been refunded | a refund has already been issued against this order |
+| 8 | Order must be delivered | The order's status is `delivered` | the order has not arrived yet |
+| 9 | Delivery date must be known | A delivery date is recorded for the order | no delivery date is on record, so the window cannot be measured |
+| 10 | Within refund window | Delivery date falls within the refund window | the order was delivered too long ago |
 
-If all rules pass, the reason reported is: *"Order was delivered within the refund window and
-has no previous refund."*
+The "why it fails" column describes the cause, not wording to repeat back. State the cause in
+whatever words suit the conversation.
 
 ## Customer standing
 
@@ -55,8 +66,8 @@ Two aspects of a customer's standing affect refund eligibility:
 - **Risk level** — one of:
   - **Normal** — no effect on eligibility.
   - **Watch** — does **not** block eligibility, but the refund should be flagged for human
-    review before it is drafted or issued. Treat a watch-list refund as "eligible, with
-    caution," not as a fully automatic approval.
+    review before it is drafted or issued. Treat a watch-list refund as eligible but
+    not automatically approved.
   - **Blocked** — blocks the refund entirely. A blocked customer cannot receive a refund
     through this process under any circumstances.
 
@@ -96,9 +107,9 @@ Two aspects of a customer's standing affect refund eligibility:
 | Situation | Outcome |
 |-----------|---------|
 | Active, normal-risk customer; order delivered recently; not previously refunded | **Eligible** — full order total refundable |
-| Active, normal-risk customer; order already shows a refund on record | **Ineligible** — "Order has already been refunded." |
-| Active, normal-risk customer; order delivered well over 30 days ago | **Ineligible** — "Order was delivered outside the refund window." |
-| Blocked customer; order otherwise meets every other rule | **Ineligible** — "Customer risk level blocks this refund." |
+| Active, normal-risk customer; order already shows a refund on record | **Ineligible** — already refunded |
+| Active, normal-risk customer; order delivered well over 30 days ago | **Ineligible** — outside the refund window |
+| Blocked customer; order otherwise meets every other rule | **Ineligible** — risk level blocks it |
 | Watch-list customer; order otherwise meets every other rule | **Eligible**, but flagged for manual review before the refund is drafted |
 
 ## Data model reference
@@ -132,10 +143,3 @@ An order is only eligible when `customer_orders.customer_id` matches the custome
 `customers.status` is `active`, `customers.risk_level` is not `blocked`, `refunded_at` is
 null, `status` is `delivered`, `delivered_at` is not null, and `delivered_at` falls within the
 refund window measured against the current date.
-
-## Guidance for answering refund questions
-
-When answering a refund question, resolve the customer and the order first, then apply the
-rules above in order. Report both the overall verdict (eligible / ineligible) and the specific
-rule that determined it — not just a yes/no answer. If the customer is on the watch list,
-make clear in the answer that the case still needs human review even though it is "eligible."
