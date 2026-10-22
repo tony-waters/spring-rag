@@ -28,7 +28,9 @@ public class RagIngestionConfig {
                     SearchRequest.builder().query(documentUrl).topK(1).build());
             if (existing != null && !existing.isEmpty()) {
                 logger.info("Vector store already has data; skipping ingestion of {}. " +
-                        "Delete the qdrant Docker volume to re-ingest a different document.", documentUrl);
+                        "Run 'docker compose rm -sf qdrant' to clear it and re-ingest. " +
+                        "Avoid 'docker compose down -v': qdrant has no volume to delete, " +
+                        "but that would wipe the cached Ollama models.", documentUrl);
                 return;
             }
 
