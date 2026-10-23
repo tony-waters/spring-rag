@@ -21,3 +21,10 @@ How much an answer reads like a person talking rather than a policy extract. Dis
 turn-taking (whether the thread is held across turns) and shape (length and structure), which
 have separate causes and separate fixes.
 _Avoid_: Conversational, tone, voice
+
+**Turn**:
+One question from the customer and the answer that follows it. The unit the app works in: a
+Turn is what Answering Guidance applies to, what Refund Policy is retrieved for, and what the
+customer experiences as a wait. A Turn carries the thread of the ones before it, so "what about
+mine?" is a Turn even though it means nothing alone.
+_Avoid_: Request, exchange, message, round trip

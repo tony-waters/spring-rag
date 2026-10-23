@@ -1,0 +1,600 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}</style></head><body>
+<title>spring-rag System Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+  :root {
+    --bg:      #f2f4f7;
+    --surface: #ffffff;
+    --ink:     #15181e;
+    --muted:   #5a626e;
+    --line:    #d2d7df;
+    --hair:    #e4e8ee;
+    --ingest:  #9a5a08;
+    --retrieve:#0b6b84;
+    --trace:   #5b3ea8;
+    --maxw: 68rem;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:      #12151a;
+      --surface: #191d24;
+      --ink:     #e7eaef;
+      --muted:   #9aa3b0;
+      --line:    #333a45;
+      --hair:    #262c35;
+      --ingest:  #e0a558;
+      --retrieve:#5fc4dd;
+      --trace:   #b49ae8;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:      #12151a;
+    --surface: #191d24;
+    --ink:     #e7eaef;
+    --muted:   #9aa3b0;
+    --line:    #333a45;
+    --hair:    #262c35;
+    --ingest:  #e0a558;
+    --retrieve:#5fc4dd;
+    --trace:   #b49ae8;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: 4rem 1.5rem 6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 3.5rem;
+  }
+
+  /* ---- masthead ---- */
+  .masthead { display: flex; flex-direction: column; gap: 1rem; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  h1 {
+    font-family: Archivo, "Helvetica Neue", Arial, sans-serif;
+    font-weight: 700;
+    font-size: clamp(2.1rem, 5vw, 3.1rem);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .standfirst {
+    max-width: 62ch;
+    font-size: 1.1875rem;
+    color: var(--muted);
+    margin: 0;
+  }
+  .rule { height: 1px; background: var(--line); border: 0; margin: 0; }
+
+  /* ---- sections ---- */
+  section { display: flex; flex-direction: column; gap: 1.25rem; }
+  h2 {
+    font-family: Archivo, "Helvetica Neue", Arial, sans-serif;
+    font-weight: 700;
+    font-size: 1.5rem;
+    letter-spacing: -0.01em;
+    margin: 0;
+    padding-bottom: 0.6rem;
+    border-bottom: 2px solid var(--ink);
+    text-wrap: balance;
+  }
+  h3 {
+    font-family: Archivo, "Helvetica Neue", Arial, sans-serif;
+    font-weight: 500;
+    font-size: 1rem;
+    margin: 0;
+  }
+  p { margin: 0; max-width: 68ch; }
+  .prose { display: flex; flex-direction: column; gap: 0.9rem; }
+
+  code, .mono {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.875em;
+  }
+  code {
+    background: var(--hair);
+    padding: 0.1em 0.35em;
+    border-radius: 2px;
+  }
+
+  /* ---- figures ---- */
+  figure {
+    margin: 0;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    padding: 1.75rem 1.5rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+  }
+  .scroller { overflow-x: auto; }
+  figure svg { display: block; width: 100%; min-width: 34rem; height: auto; color: var(--ink); }
+  figcaption {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.8125rem;
+    line-height: 1.55;
+    color: var(--muted);
+    border-top: 1px solid var(--hair);
+    padding-top: 0.9rem;
+  }
+  figcaption b { color: var(--ink); font-weight: 500; }
+
+  /* svg primitives */
+  .node { fill: var(--surface); stroke: var(--ink); stroke-width: 1.5; }
+  .zone { fill: none; stroke: var(--muted); stroke-width: 1; stroke-dasharray: 5 4; }
+  .edge { stroke: currentColor; stroke-width: 1.5; fill: none; }
+  .e-ingest   { stroke: var(--ingest); }
+  .e-retrieve { stroke: var(--retrieve); }
+  .e-trace    { stroke: var(--trace); stroke-dasharray: 4 3; }
+  .guard { stroke: var(--muted); stroke-width: 1.25; stroke-dasharray: 4 4; fill: none; }
+  text {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 12px;
+    fill: var(--ink);
+  }
+  .t-title { font-family: Archivo, Arial, sans-serif; font-size: 14px; font-weight: 700; }
+  .t-sub   { font-size: 11px; fill: var(--muted); }
+  .t-edge  { font-size: 11px; fill: var(--muted); }
+  .t-ingest   { fill: var(--ingest); font-size: 11px; }
+  .t-retrieve { fill: var(--retrieve); font-size: 11px; }
+  .t-trace    { fill: var(--trace); font-size: 11px; }
+
+  /* ---- key ---- */
+  .spantree {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.8125rem;
+    line-height: 1.75;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--trace);
+    border-radius: 2px;
+    padding: 1.25rem 1.5rem;
+    margin: 0;
+    overflow-x: auto;
+    white-space: pre;
+    color: var(--ink);
+  }
+  .spantree b { font-weight: 500; color: var(--trace); }
+  .spantree i { font-style: normal; color: var(--muted); }
+
+  .key { display: flex; flex-wrap: wrap; gap: 1.25rem; font-family: "IBM Plex Mono", monospace; font-size: 0.8125rem; color: var(--muted); }
+  .key span { display: inline-flex; align-items: center; gap: 0.5rem; }
+  .swatch { width: 1.75rem; height: 0; border-top: 2px solid; }
+
+  /* ---- component grid ---- */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+  }
+  .cell { background: var(--surface); padding: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; }
+  .cell p { font-size: 0.9375rem; color: var(--muted); }
+  .cell .path {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: -0.01em;
+  }
+
+  /* ---- settings table ---- */
+  .tablewrap { overflow-x: auto; border: 1px solid var(--line); background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: 0.9375rem; }
+  th, td { text-align: left; padding: 0.7rem 1rem; border-bottom: 1px solid var(--hair); vertical-align: top; }
+  th {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    font-weight: 400;
+    border-bottom: 1px solid var(--line);
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+  td:first-child { font-family: "IBM Plex Mono", monospace; font-size: 0.8125rem; white-space: nowrap; }
+  td:last-child { color: var(--muted); }
+
+  footer {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.8125rem;
+    color: var(--muted);
+    border-top: 1px solid var(--line);
+    padding-top: 1.25rem;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    a { transition: color 120ms ease; }
+  }
+  :focus-visible { outline: 2px solid var(--retrieve); outline-offset: 2px; }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="eyebrow">System map · uk.bit1.springrag</div>
+    <h1>spring-rag System Map</h1>
+    <p class="standfirst">A console RAG chat demo: five containers, one document, and two paths through
+    the stack — a one-time ingestion at startup, and a retrieval round trip on every question typed at the prompt.
+    Both are traced, one trace per turn.</p>
+    <div class="key">
+      <span><i class="swatch" style="border-color: var(--ingest)"></i> ingestion (once, at startup)</span>
+      <span><i class="swatch" style="border-color: var(--retrieve)"></i> retrieval (every turn)</span>
+      <span><i class="swatch" style="border-color: var(--trace)"></i> tracing (out of band)</span>
+    </div>
+  </header>
+
+  <hr class="rule">
+
+  <!-- ============ FIGURE 1 ============ -->
+  <section>
+    <h2>Deployment: who talks to whom</h2>
+    <div class="prose">
+      <p>Everything runs as Compose services on one bridge network. The app holds the terminal
+      (<code>stdin_open</code>, <code>tty</code>) and is the only component that initiates traffic — Qdrant and
+      Ollama never call back into it.</p>
+    </div>
+    <figure>
+      <div class="scroller">
+        <svg viewBox="0 0 900 620" role="img" aria-label="Deployment diagram: your terminal attaches to the app container, which talks to Qdrant over gRPC port 6334, to Ollama over HTTP port 11434, and exports traces to Tempo over OTLP port 4318. Grafana queries Tempo and is reached from your browser on port 3000. All five services sit on the ragnet bridge network.">
+          <defs>
+            <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+            </marker>
+          </defs>
+
+          <!-- terminal -->
+          <rect class="node" x="70" y="14" width="260" height="42" rx="2"/>
+          <text x="200" y="40" text-anchor="middle">Your terminal — stdin / tty</text>
+          <g color="var(--ink)">
+            <line class="edge" x1="200" y1="56" x2="200" y2="118" marker-end="url(#a1)"/>
+          </g>
+          <text class="t-edge" x="212" y="92">docker compose run --rm app</text>
+
+          <!-- ragnet zone -->
+          <rect class="zone" x="40" y="68" width="820" height="470" rx="3"/>
+          <text class="t-sub" x="52" y="528">ragnet · bridge · mtu 1280 (matches the host VPN tunnel)</text>
+
+          <!-- app -->
+          <rect class="node" x="70" y="120" width="270" height="215" rx="2"/>
+          <text class="t-title" x="90" y="148">app</text>
+          <text class="t-sub" x="90" y="168">Spring Boot 4.1 · Java 25</text>
+          <line x1="90" y1="182" x2="320" y2="182" stroke="var(--hair)" stroke-width="1"/>
+          <text x="90" y="204">SpringRagApplication</text>
+          <text class="t-sub" x="90" y="222">console REPL, ApplicationRunner @Order(1)</text>
+          <text x="90" y="248">RagIngestionConfig</text>
+          <text class="t-sub" x="90" y="266">@Order(0) — runs before the REPL</text>
+          <text x="90" y="292">ChatClientConfig</text>
+          <text class="t-sub" x="90" y="310">mount: ./documents → /documents (ro)</text>
+
+          <!-- qdrant -->
+          <rect class="node" x="600" y="110" width="230" height="96" rx="2"/>
+          <text class="t-title" x="620" y="138">qdrant</text>
+          <text class="t-sub" x="620" y="158">vector store · no volume</text>
+          <text class="t-sub" x="620" y="176">collection auto-created</text>
+          <text class="t-sub" x="620" y="194">data is lost on container rm</text>
+
+          <!-- ollama -->
+          <rect class="node" x="600" y="250" width="230" height="96" rx="2"/>
+          <text class="t-title" x="620" y="278">ollama</text>
+          <text class="t-sub" x="620" y="298">llama3.1:8b — chat, CPU only</text>
+          <text class="t-sub" x="620" y="316">nomic-embed-text — embeddings</text>
+          <text class="t-sub" x="620" y="334">volume: ollama-data (model cache)</text>
+
+          <!-- edges -->
+          <g color="var(--retrieve)">
+            <line class="edge e-retrieve" x1="340" y1="170" x2="596" y2="158" marker-end="url(#a1)"/>
+          </g>
+          <text class="t-retrieve" x="468" y="152" text-anchor="middle">gRPC :6334 — upsert + similarity search</text>
+
+          <g color="var(--retrieve)">
+            <line class="edge e-retrieve" x1="340" y1="285" x2="596" y2="297" marker-end="url(#a1)"/>
+          </g>
+          <text class="t-retrieve" x="468" y="282" text-anchor="middle">HTTP :11434 — embed + chat</text>
+
+          <!-- tempo -->
+          <rect class="node" x="70" y="400" width="270" height="96" rx="2"/>
+          <text class="t-title" x="90" y="428">tempo</text>
+          <text class="t-sub" x="90" y="448">single binary · local disk</text>
+          <text class="t-sub" x="90" y="466">OTLP :4318 published to the host</text>
+          <text class="t-sub" x="90" y="484">no volume — traces die with the container</text>
+
+          <!-- grafana -->
+          <rect class="node" x="600" y="400" width="230" height="96" rx="2"/>
+          <text class="t-title" x="620" y="428">grafana</text>
+          <text class="t-sub" x="620" y="448">anonymous access, no login</text>
+          <text class="t-sub" x="620" y="466">Tempo datasource provisioned</text>
+          <text class="t-sub" x="620" y="484">started unprofiled, every run</text>
+
+          <!-- trace edges -->
+          <g color="var(--trace)">
+            <line class="edge e-trace" x1="205" y1="337" x2="205" y2="396" marker-end="url(#a1)"/>
+          </g>
+          <text class="t-trace" x="217" y="372">OTLP :4318 — spans out</text>
+
+          <g color="var(--trace)">
+            <line class="edge e-trace" x1="596" y1="448" x2="344" y2="448" marker-end="url(#a1)"/>
+          </g>
+          <text class="t-trace" x="470" y="440" text-anchor="middle">HTTP :3200 — trace queries</text>
+
+          <!-- browser, outside the network -->
+          <rect class="node" x="560" y="560" width="280" height="42" rx="2"/>
+          <text x="700" y="586" text-anchor="middle">Your browser — localhost:3000</text>
+          <g color="var(--ink)">
+            <line class="edge" x1="700" y1="558" x2="700" y2="500" marker-end="url(#a1)"/>
+          </g>
+        </svg>
+      </div>
+      <figcaption><b>Fig. 1</b> — Arrows show who dials whom. The app is the only initiator among the
+      three services it depends on; Qdrant and Ollama are plain request/response services. Tracing runs the
+      other way round: the app pushes spans to Tempo and never reads them back, and Grafana — not the app —
+      is what queries Tempo, on your browser&rsquo;s behalf. Note the asymmetry in durability: Ollama keeps a
+      named volume for its ~4.9&nbsp;GB model cache, Qdrant keeps none — so removing the Qdrant container
+      is what clears ingested vectors, and <code>down -v</code> would needlessly throw away the models.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ============ FIGURE 2 ============ -->
+  <section>
+    <h2>One turn at the prompt</h2>
+    <div class="prose">
+      <p>Each line you type runs the full advisor chain. Two advisors are stacked as builder
+      customizers: chat memory replays the window of prior turns, and the question-answer advisor
+      performs the retrieval and splices the chunks into the prompt. Both round trips to Ollama — the
+      embedding and the completion — happen inside a single <code>call()</code>.</p>
+    </div>
+    <figure>
+      <div class="scroller">
+        <svg viewBox="0 0 900 560" role="img" aria-label="Per-turn flow: a typed question goes through ChatClient, the chat memory advisor, and the question-answer advisor, which embeds the question via nomic-embed-text and searches Qdrant for four chunks; the assembled prompt is completed by llama3.1:8b and printed to the console.">
+          <defs>
+            <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+            </marker>
+          </defs>
+
+          <!-- ollama (left, spans both calls) -->
+          <rect class="node" x="40" y="236" width="200" height="214" rx="2"/>
+          <text class="t-title" x="58" y="262">ollama</text>
+          <line x1="58" y1="276" x2="222" y2="276" stroke="var(--hair)" stroke-width="1"/>
+          <text x="58" y="300">nomic-embed-text</text>
+          <text class="t-sub" x="58" y="318">question → vector</text>
+          <text x="58" y="400">llama3.1:8b</text>
+          <text class="t-sub" x="58" y="418">minutes per answer on CPU</text>
+
+          <!-- qdrant (right) -->
+          <rect class="node" x="660" y="236" width="200" height="104" rx="2"/>
+          <text class="t-title" x="678" y="262">qdrant</text>
+          <line x1="678" y1="276" x2="842" y2="276" stroke="var(--hair)" stroke-width="1"/>
+          <text class="t-sub" x="678" y="298">refund-policy chunks</text>
+          <text class="t-sub" x="678" y="318">cosine similarity</text>
+
+          <!-- centre chain -->
+          <rect class="node" x="290" y="18" width="320" height="52" rx="2"/>
+          <text x="450" y="40" text-anchor="middle">&gt; question typed at the prompt</text>
+          <text class="t-sub" x="450" y="58" text-anchor="middle">Scanner on System.in</text>
+
+          <rect class="node" x="290" y="92" width="320" height="52" rx="2"/>
+          <text x="450" y="114" text-anchor="middle">ChatClient.prompt(input).call()</text>
+          <text class="t-sub" x="450" y="132" text-anchor="middle">conversationId = per-run session id</text>
+
+          <rect class="node" x="290" y="166" width="320" height="52" rx="2"/>
+          <text x="450" y="188" text-anchor="middle">MessageChatMemoryAdvisor</text>
+          <text class="t-sub" x="450" y="206" text-anchor="middle">sliding window, last 500 messages</text>
+
+          <rect class="node" x="290" y="240" width="320" height="52" rx="2"/>
+          <text x="450" y="262" text-anchor="middle">QuestionAnswerAdvisor</text>
+          <text class="t-sub" x="450" y="280" text-anchor="middle">topK = 4 · similarity ≥ 0.5</text>
+
+          <rect class="node" x="290" y="314" width="320" height="52" rx="2"/>
+          <text x="450" y="336" text-anchor="middle">assembled prompt</text>
+          <text class="t-sub" x="450" y="354" text-anchor="middle">answering guidance + chunks + history</text>
+
+          <rect class="node" x="290" y="388" width="320" height="52" rx="2"/>
+          <text x="450" y="410" text-anchor="middle">chat completion</text>
+          <text class="t-sub" x="450" y="428" text-anchor="middle">one blocking call</text>
+
+          <rect class="node" x="290" y="462" width="320" height="52" rx="2"/>
+          <text x="450" y="484" text-anchor="middle">answer printed to the console</text>
+          <text class="t-sub" x="450" y="502" text-anchor="middle">loop waits for the next line</text>
+
+          <!-- chain arrows -->
+          <g color="var(--ink)">
+            <line class="edge" x1="450" y1="70"  x2="450" y2="88"  marker-end="url(#a2)"/>
+            <line class="edge" x1="450" y1="144" x2="450" y2="162" marker-end="url(#a2)"/>
+            <line class="edge" x1="450" y1="218" x2="450" y2="236" marker-end="url(#a2)"/>
+            <line class="edge" x1="450" y1="292" x2="450" y2="310" marker-end="url(#a2)"/>
+            <line class="edge" x1="450" y1="366" x2="450" y2="384" marker-end="url(#a2)"/>
+            <line class="edge" x1="450" y1="440" x2="450" y2="458" marker-end="url(#a2)"/>
+          </g>
+
+          <!-- retrieval side trips -->
+          <g color="var(--retrieve)">
+            <line class="edge e-retrieve" x1="286" y1="266" x2="244" y2="300" marker-end="url(#a2)"/>
+            <line class="edge e-retrieve" x1="614" y1="258" x2="656" y2="258" marker-end="url(#a2)"/>
+            <line class="edge e-retrieve" x1="656" y1="288" x2="614" y2="288" marker-end="url(#a2)"/>
+            <line class="edge e-retrieve" x1="286" y1="414" x2="244" y2="414" marker-end="url(#a2)"/>
+          </g>
+          <text class="t-retrieve" x="248" y="258" text-anchor="end">1 embed</text>
+          <text class="t-retrieve" x="636" y="250" text-anchor="middle">2 search</text>
+          <text class="t-retrieve" x="636" y="308" text-anchor="middle">3 chunks</text>
+          <text class="t-retrieve" x="248" y="406" text-anchor="end">4 generate</text>
+        </svg>
+      </div>
+      <figcaption><b>Fig. 2</b> — The retrieval hop is the whole point of the design: without steps 1–3 the
+      prompt carries only the answering guidance and the conversation history, and the model has no refund
+      policy to reason over. Retrieved chunks are injected per turn; they are not remembered by the chat
+      memory window.</figcaption>
+    </figure>
+
+    <div class="prose">
+      <p>That same turn is also one trace. <code>SpringRagApplication</code> opens a
+      <code>chatloop.turn</code> observation around the <code>call()</code>, which does two things: it times
+      exactly the wait between enter and answer, and — because an open observation is in scope — it adopts
+      Spring AI&rsquo;s own spans as children. Without it, each of the four steps above would arrive in Tempo
+      as its own unrelated root trace.</p>
+      <p>The nesting is the surprise. Fig. 2 draws the advisors as a stack, but the trace shows them
+      <em>wrapping</em> one another: retrieval happens inside <code>question_answer</code> and the completion
+      inside <code>call</code>, the terminal advisor that actually talks to the model. Two advisors are
+      configured in <code>ChatClientConfig</code>; four appear here, because Spring AI inserts its own tool-calling
+      and terminal advisors into the chain. The durations below are from a real turn, and they show where the
+      argument about model choice actually lives: retrieval cost 78ms, generation cost 56.4 of the 56.6
+      seconds.</p>
+    </div>
+    <pre class="spantree"><b>chatloop.turn</b>                  <i>56,598ms — turn.question, turn.answer, conversation.id</i>
+└─ spring_ai chat_client
+   └─ message_chat_memory         <i>MessageChatMemoryAdvisor</i>
+      └─ tool _calling            <i>Tool Calling Advisor</i>
+         └─ question_answer       <i>QuestionAnswerAdvisor</i>
+            ├─ qdrant query       <i>78ms — 2 search, 3 chunks</i>
+            │  └─ embedding       <i>71ms — 1 embed, nomic-embed-text</i>
+            │     └─ http post
+            └─ call               <i>the terminal advisor</i>
+               └─ chat llama3.2:3b  <i>56,407ms — 4 generate</i>
+                  └─ http post</pre>
+    <div class="prose">
+      <p>What the trace does <em>not</em> carry is the text: the assembled prompt, the completion, and the
+      chunks Qdrant actually returned all go to the console instead, because Spring AI&rsquo;s content
+      observations write to a logger rather than onto spans. Each of those log lines carries the turn&rsquo;s
+      <code>traceId</code>, which is what joins the two halves. The reasoning, and the deferred Loki option
+      that would close the gap, are in ADR 0002.</p>
+    </div>
+  </section>
+
+  <!-- ============ FIGURE 3 ============ -->
+  <section>
+    <h2>Startup ingestion, and the guard that skips it</h2>
+    <div class="prose">
+      <p>Ingestion is an <code>ApplicationRunner</code> at <code>@Order(0)</code>, so it completes before the
+      REPL opens. It begins by probing the store with the document URL as the query text — a hit means
+      something has already been ingested, and the whole pipeline is bypassed.</p>
+    </div>
+    <figure>
+      <div class="scroller">
+        <svg viewBox="0 0 960 220" role="img" aria-label="Ingestion pipeline: the configured document is read by Apache Tika, split by TokenTextSplitter, embedded by nomic-embed-text, and upserted into Qdrant — unless a startup similarity probe finds the store already populated, which skips the whole pipeline.">
+          <defs>
+            <marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+            </marker>
+          </defs>
+
+          <!-- guard -->
+          <path class="guard" d="M 92 86 C 92 20 540 20 896 86"/>
+          <polygon points="896,86 890,74 902,74" fill="var(--muted)"/>
+          <text class="t-sub" x="494" y="26" text-anchor="middle">startup probe: if a similarity search for the document URL returns a hit, skip everything below</text>
+
+          <rect class="node" x="16" y="86" width="152" height="76" rx="2"/>
+          <text x="92" y="116" text-anchor="middle">rag.document.url</text>
+          <text class="t-sub" x="92" y="136" text-anchor="middle">classpath:refunds.md</text>
+
+          <rect class="node" x="210" y="86" width="152" height="76" rx="2"/>
+          <text x="286" y="116" text-anchor="middle">TikaDocumentReader</text>
+          <text class="t-sub" x="286" y="136" text-anchor="middle">PDF, Word, HTML, text</text>
+
+          <rect class="node" x="404" y="86" width="152" height="76" rx="2"/>
+          <text x="480" y="116" text-anchor="middle">TokenTextSplitter</text>
+          <text class="t-sub" x="480" y="136" text-anchor="middle">token-sized chunks</text>
+
+          <rect class="node" x="598" y="86" width="152" height="76" rx="2"/>
+          <text x="674" y="116" text-anchor="middle">nomic-embed-text</text>
+          <text class="t-sub" x="674" y="136" text-anchor="middle">chunk → vector</text>
+
+          <rect class="node" x="792" y="86" width="152" height="76" rx="2"/>
+          <text x="868" y="116" text-anchor="middle">qdrant</text>
+          <text class="t-sub" x="868" y="136" text-anchor="middle">vectorStore.accept()</text>
+
+          <g color="var(--ingest)">
+            <line class="edge e-ingest" x1="168" y1="124" x2="206" y2="124" marker-end="url(#a3)"/>
+            <line class="edge e-ingest" x1="362" y1="124" x2="400" y2="124" marker-end="url(#a3)"/>
+            <line class="edge e-ingest" x1="556" y1="124" x2="594" y2="124" marker-end="url(#a3)"/>
+            <line class="edge e-ingest" x1="750" y1="124" x2="788" y2="124" marker-end="url(#a3)"/>
+          </g>
+          <text class="t-ingest" x="187" y="116" text-anchor="middle">read</text>
+          <text class="t-ingest" x="381" y="116" text-anchor="middle">split</text>
+          <text class="t-ingest" x="575" y="116" text-anchor="middle">embed</text>
+          <text class="t-ingest" x="769" y="116" text-anchor="middle">upsert</text>
+
+          <text class="t-sub" x="16" y="196">ApplicationRunner @Order(0) — completes before the REPL accepts input</text>
+        </svg>
+      </div>
+      <figcaption><b>Fig. 3</b> — The guard makes ingestion idempotent across restarts, but it also means
+      changing <code>rag.document.url</code> alone has no effect: the probe still finds the <i>old</i>
+      document's vectors and skips. Recreating the Qdrant container (which holds no volume) is what forces a
+      re-ingest.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ============ COMPONENTS ============ -->
+  <section>
+    <h2>The three source files</h2>
+    <div class="grid">
+      <div class="cell">
+        <h3>SpringRagApplication</h3>
+        <div class="path">src/main/java/uk/bit1/springrag/</div>
+        <p>Boot entry point plus the console REPL. Reads lines until EOF (Ctrl+D), skips blank input, and
+        tags every call with the fixed conversation id <span class="mono">DEMO</span> so one session shares
+        one memory window.</p>
+      </div>
+      <div class="cell">
+        <h3>RagIngestionConfig</h3>
+        <div class="path">src/main/java/uk/bit1/springrag/</div>
+        <p>The startup ingestion runner of Fig. 3 — probe, read, split, store. The only component that
+        writes to the vector store.</p>
+      </div>
+      <div class="cell">
+        <h3>ChatClientConfig</h3>
+        <div class="path">src/main/java/uk/bit1/springrag/</div>
+        <p>Holds the answering guidance in a system prompt, and registers the two advisors. The prompt is
+        where the behavioural rules live: ask before judging, never invent a delivery date or verdict, and
+        always disclose manual review for watch-listed customers.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CONFIG ============ -->
+  <section>
+    <h2>Settings that change the shape of the system</h2>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th>Property</th><th>Value</th><th>Why it matters</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>rag.document.url</td><td>classpath:refunds.md</td><td>The retrieved corpus. Swapping it needs a Qdrant reset (Fig. 3).</td></tr>
+          <tr><td>spring.ai.ollama.chat.model</td><td>llama3.1:8b</td><td>Chosen for accuracy over speed; the 3b model invents refund verdicts.</td></tr>
+          <tr><td>spring.ai.ollama.embedding.model</td><td>nomic-embed-text</td><td>Used on both paths — ingestion and every query.</td></tr>
+          <tr><td>spring.ai.ollama.init.timeout</td><td>20m</td><td>The default 5m fails startup mid-pull on a ~4.9&nbsp;GB download.</td></tr>
+          <tr><td>spring.main.web-application-type</td><td>none</td><td>No HTTP server — the terminal is the only interface.</td></tr>
+          <tr><td>spring.docker.compose.skip.in-tests</td><td>false</td><td>Lets the context test reach real Qdrant and Ollama containers.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>Drawn from the repository at main · three Java classes, one Compose stack, two models.</footer>
+
+</div>
+
+</body></html>

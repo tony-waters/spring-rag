@@ -1,0 +1,11 @@
+# Provisioned so the Tempo datasource exists without clicking through Grafana's setup.
+apiVersion: 1
+
+datasources:
+  - name: Tempo
+    type: tempo
+    uid: tempo
+    # Tempo's HTTP API, not its OTLP receiver: queries go to 3200, spans arrive on 4318.
+    url: http://tempo:3200
+    access: proxy
+    isDefault: true

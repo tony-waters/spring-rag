@@ -106,13 +106,81 @@ Key settings live in `src/main/resources/application.properties`:
 | `spring.ai.ollama.chat.model` | Chat model (default `llama3.1:8b`) |
 | `spring.ai.ollama.embedding.model` | Embedding model (default `nomic-embed-text`) |
 | `spring.ai.vectorstore.qdrant.initialize-schema` | Auto-creates the Qdrant collection |
+| `management.opentelemetry.tracing.export.otlp.endpoint` | Where traces go (see [Viewing traces](#viewing-traces)) |
+| `spring.ai.chat.observations.log-prompt` | Logs the prompt as sent to Ollama, chunks included |
 
 `compose.yaml` overrides a few of these at runtime so the `app` container can
 reach its dependencies by service name instead of `localhost`:
-`SPRING_AI_OLLAMA_BASE_URL`, `SPRING_AI_VECTORSTORE_QDRANT_HOST`, and
-`SPRING_AI_VECTORSTORE_QDRANT_PORT`. It also sets `SPRING_DOCKER_COMPOSE_ENABLED=false`
+`SPRING_AI_OLLAMA_BASE_URL`, `SPRING_AI_VECTORSTORE_QDRANT_HOST`,
+`SPRING_AI_VECTORSTORE_QDRANT_PORT`, and
+`MANAGEMENT_OPENTELEMETRY_TRACING_EXPORT_OTLP_ENDPOINT`. It also sets `SPRING_DOCKER_COMPOSE_ENABLED=false`
 since the app is already being orchestrated by Compose, rather than starting
 its own nested Compose stack.
+
+## Viewing traces
+
+Every turn is traced. Grafana and Tempo start with Qdrant and Ollama - there is no flag to
+remember - so once the app is running, open:
+
+```
+http://localhost:3000
+```
+
+Then **Explore** -> the **Tempo** datasource -> **Search**, with service name `chatloop`. No
+login: anonymous access is on.
+
+Each turn is one trace, named `chatloop.turn`, lasting exactly as long as you waited for the
+answer. Opening one shows where that time went:
+
+```
+chatloop.turn                     <- your question and the answer, as span attributes
+└─ spring_ai chat_client
+   └─ message_chat_memory         <- the advisor chain nests, it does not fan out
+      └─ tool _calling
+         └─ question_answer
+            ├─ qdrant query       <- topK = 4, similarity >= 0.5
+            │  └─ embedding       <- the question becoming a vector
+            │     └─ http post
+            └─ call
+               └─ chat llama3.2:3b
+                  └─ http post
+```
+
+The shape is the point: each advisor wraps the next rather than sitting beside it, so the
+retrieval work appears *inside* `question_answer` and the completion *inside* `call`, the
+terminal advisor. The `http post` leaves are the actual Ollama round trips.
+
+It also settles an argument about where the time goes. In a measured 56.6s turn, the Qdrant
+query took 78ms and the embedding 71ms of that; `chat llama3.2:3b` took 56.4s. Retrieval is
+free and generation is everything - which is why the model choice is commented the way it is in
+`application.properties`.
+
+Startup ingestion is its own trace, `chatloop.ingest`. On a run that skips ingestion because
+Qdrant already holds data, it is nearly empty - which is the answer to "did it re-ingest?".
+
+To follow one session, the app prints a short session id at startup:
+
+```
+Session 3f8a1c04 - search Grafana for this id to find this session's traces.
+```
+
+Search on `conversation.id` to get just that session's turns.
+
+### Finding the prompt and the retrieved chunks
+
+These are **not** in Tempo - they are in the app's own console output, because Spring AI's
+content observations write to a logger rather than onto spans. Each log line carries the
+`traceId` of the turn it belongs to, so the two line up:
+
+- the prompt as actually sent to Ollama, with the system prompt, the chat memory and the
+  retrieved policy chunks spliced in
+- the completion that came back
+- the documents Qdrant returned for the query
+
+That split, and why it was accepted rather than worked around, is recorded in
+[ADR 0002](docs/adr/0002-tracing-always-on-content-in-logs.md). It is also why these settings
+are fine here and would not be in a real system: in production that console is full of customer
+data.
 
 ## Running tests locally
 

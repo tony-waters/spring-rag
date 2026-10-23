@@ -1,0 +1,25 @@
+# Tempo single-binary, local disk, OTLP in. Deliberately minimal: no metrics_generator and no
+# Prometheus remote_write, because a service graph of one application service would be three
+# moving parts for a two-node picture (see docs/adr/0002).
+server:
+  http_listen_port: 3200
+
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        # Bound to 0.0.0.0 explicitly rather than relying on the receiver's default, which
+        # upstream moved to localhost - inside a container that silently refuses every
+        # connection from the app.
+        http:
+          endpoint: 0.0.0.0:4318
+        grpc:
+          endpoint: 0.0.0.0:4317
+
+storage:
+  trace:
+    backend: local
+    local:
+      path: /var/tempo/traces
+    wal:
+      path: /var/tempo/wal

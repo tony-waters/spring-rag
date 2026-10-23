@@ -6,11 +6,20 @@ services:
     depends_on:
       - qdrant
       - ollama
+      - tempo
+      # Nothing else depends on grafana, and "docker compose run --rm app" only starts the
+      # app's own dependencies - so without it here, the documented container workflow would
+      # bring up the trace backend but not the thing you read traces in.
+      - grafana
     environment:
       SPRING_DOCKER_COMPOSE_ENABLED: 'false'
       SPRING_AI_OLLAMA_BASE_URL: 'http://ollama:11434'
       SPRING_AI_VECTORSTORE_QDRANT_HOST: 'qdrant'
       SPRING_AI_VECTORSTORE_QDRANT_PORT: '6334'
+      # application.properties points at localhost for host runs; in here that would be this
+      # container's own loopback, so the exporter would fail quietly and no trace would ever
+      # reach Tempo.
+      MANAGEMENT_OPENTELEMETRY_TRACING_EXPORT_OTLP_ENDPOINT: 'http://tempo:4318/v1/traces'
     volumes:
       # Mount local documents here to ingest them, e.g.
       # rag.document.url=file:///documents/mydoc.pdf
@@ -24,6 +33,40 @@ services:
     image: 'qdrant/qdrant:latest'
     ports:
       - '6334:6334'
+    networks:
+      - ragnet
+
+  # Trace backend and viewer. Unprofiled, so Spring Boot's docker-compose management starts
+  # them with qdrant and ollama: tracing you have to remember to enable is tracing you will not
+  # look at (see docs/adr/0002).
+  tempo:
+    image: 'grafana/tempo:latest'
+    command:
+      - '-config.file=/etc/tempo/tempo.yaml'
+    volumes:
+      - './observability/tempo.yaml:/etc/tempo/tempo.yaml:ro'
+    ports:
+      # Published so an app run on the host with ./gradlew bootRun can export to it.
+      - '4318:4318'
+    networks:
+      - ragnet
+
+  grafana:
+    image: 'grafana/grafana:latest'
+    depends_on:
+      - tempo
+    environment:
+      # No login prompt on a demo you open and close.
+      GF_AUTH_ANONYMOUS_ENABLED: 'true'
+      GF_AUTH_ANONYMOUS_ORG_ROLE: 'Admin'
+      GF_AUTH_DISABLE_LOGIN_FORM: 'true'
+    volumes:
+      - './observability/grafana/provisioning:/etc/grafana/provisioning:ro'
+    ports:
+      # Bound to loopback, not 0.0.0.0: anonymous access is Admin, so on a host reachable from
+      # another machine an unpublished-to-the-world port is the only thing keeping strangers
+      # out of the traces - which hold the questions and answers verbatim.
+      - '127.0.0.1:3000:3000'
     networks:
       - ragnet
 
