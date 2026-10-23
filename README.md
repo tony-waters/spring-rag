@@ -66,7 +66,7 @@ docker compose build app
 
 ## Using your own document
 
-By default, the app ingests `src/main/resources/sample-document.txt`. To use a
+By default, the app ingests `src/main/resources/refunds.md`. To use a
 different document, drop it into the `documents/` folder (mounted into the app
 container at `/documents`) and point `rag.document.url` in
 `src/main/resources/application.properties` at it:
@@ -83,12 +83,18 @@ docker compose build app
 
 Tika supports many formats (PDF, Word, HTML, plain text, etc.).
 
-**Note:** ingestion only runs if the vector store is empty. To re-ingest a new
-document, delete the Qdrant data first:
+**Note:** ingestion only runs if the vector store is empty, so pointing
+`rag.document.url` at a new document is not enough on its own — the startup check
+finds the previous document's vectors and skips. Discard them by removing the
+`qdrant` container, which holds no volume:
 
 ```bash
-docker compose down -v
+docker compose rm -sf qdrant
 ```
+
+Avoid `docker compose down -v` for this: it would delete the `ollama-data` volume
+too, throwing away the cached models and forcing a ~4.9GB re-download on the next
+run.
 
 ## Configuration
 
