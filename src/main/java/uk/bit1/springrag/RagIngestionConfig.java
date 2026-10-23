@@ -57,7 +57,12 @@ public class RagIngestionConfig {
         logger.info("Loading document from {}.", documentUrl);
 
         var reader = new TikaDocumentReader(documentUrl);
-        var splitter = TokenTextSplitter.builder().build();
+        // The default chunk size is 800 tokens, which split refunds.md into 3 chunks - fewer
+        // than the 4 the retrieval asks for, so every Turn was handed the entire Refund Policy
+        // and the similarity search could not filter anything. 200 gives enough chunks for
+        // topK=4 to be a real choice, and roughly halves the tokens the model has to read
+        // before it can start answering. See INCREASE-SPEED.md.
+        var splitter = TokenTextSplitter.builder().withChunkSize(200).build();
 
         var chunks = splitter.apply(reader.get());
         ingest.highCardinalityKeyValue("ingest.chunks", String.valueOf(chunks.size()));
